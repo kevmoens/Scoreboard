@@ -13,11 +13,11 @@
 <div class="form-group">
     <label>
         Home:
-        <input @bind="home" />
+        <input @bind="home" size="50" />
     </label>
 </div>
-<button @onclick="Send" disabled="@(!IsConnected)">Send</button>
 
+<MudButton OnClick="@Send" disabled="@(!IsConnected)" Variant="Variant.Filled" Color="Color.Primary">Send</MudButton>
 <hr>
 
 <ul id="messagesList">
