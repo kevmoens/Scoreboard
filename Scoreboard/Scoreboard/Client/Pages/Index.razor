@@ -1,5 +1,7 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
 
 <PageTitle>Scoreboard Home</PageTitle>
 <style>
@@ -60,28 +62,31 @@ label {
     </MudItem>
 </MudGrid>
 
-<MudGrid>    
-    <MudItem xs="6" >
-        <MudButton OnClick="@(() => AwayScore(3))" disabled="@(!IsConnected)" Variant="Variant.Filled" Color="Color.Secondary">Field Goal</MudButton>
-        <MudButton OnClick="@(() => AwayScore(6))" disabled="@(!IsConnected)" Variant="Variant.Filled" Color="Color.Secondary">Touchdown</MudButton>
-        <MudButton OnClick="@(() => AwayScore(1))" disabled="@(!IsConnected)" Variant="Variant.Filled" Color="Color.Secondary">Extra Point</MudButton>
-        <MudButton OnClick="@(() => AwayScore(2))" disabled="@(!IsConnected)" Variant="Variant.Filled" Color="Color.Secondary">Safety/Two Point Conversion</MudButton>
-    </MudItem>
-    <MudItem xs="6" >
-        <MudButton OnClick="@(() => HomeScore(3))" disabled="@(!IsConnected)" Variant="Variant.Filled" Color="Color.Primary">Field Goal</MudButton>
-        <MudButton OnClick="@(() => HomeScore(6))" disabled="@(!IsConnected)" Variant="Variant.Filled" Color="Color.Primary">Touchdown</MudButton>
-        <MudButton OnClick="@(() => HomeScore(1))" disabled="@(!IsConnected)" Variant="Variant.Filled" Color="Color.Primary">Extra Point</MudButton>
-        <MudButton OnClick="@(() => HomeScore(2))" disabled="@(!IsConnected)" Variant="Variant.Filled" Color="Color.Primary">Safety/Two Point Conversion</MudButton>
-    </MudItem>
-</MudGrid>
-<hr>
-
-<ul id="messagesList">
-    @foreach (var message in messages)
-    {
-        <li>@message</li>
-    }
-</ul>
+<MudButton OnClick="@(() => ToggleButtons())" Variant="Variant.Filled" Color="Color.Secondary">...</MudButton>
+@if (!hideButtons)
+{
+    <MudGrid>    
+        <MudItem xs="6" >
+            <MudButton OnClick="@(() => AwayScore(3))" Variant="Variant.Filled" Color="Color.Secondary">Field Goal</MudButton>
+            <MudButton OnClick="@(() => AwayScore(6))" Variant="Variant.Filled" Color="Color.Secondary">Touchdown</MudButton>
+            <MudButton OnClick="@(() => AwayScore(1))" Variant="Variant.Filled" Color="Color.Secondary">Extra Point</MudButton>
+            <MudButton OnClick="@(() => AwayScore(2))" Variant="Variant.Filled" Color="Color.Secondary">Safety/Two Point Conversion</MudButton>
+        </MudItem>
+        <MudItem xs="6" >
+            <MudButton OnClick="@(() => HomeScore(3))" Variant="Variant.Filled" Color="Color.Primary">Field Goal</MudButton>
+            <MudButton OnClick="@(() => HomeScore(6))" Variant="Variant.Filled" Color="Color.Primary">Touchdown</MudButton>
+            <MudButton OnClick="@(() => HomeScore(1))" Variant="Variant.Filled" Color="Color.Primary">Extra Point</MudButton>
+            <MudButton OnClick="@(() => HomeScore(2))" Variant="Variant.Filled" Color="Color.Primary">Safety/Two Point Conversion</MudButton>
+        </MudItem>
+    </MudGrid>
+    <hr>
+    <ul id="messagesList">
+        @foreach (var message in messages)
+        {
+            <li>@message</li>
+        }
+    </ul>
+}
 
 @code {
     private HubConnection? hubConnection;
@@ -91,45 +96,50 @@ label {
     private Team? home = null;
     private Team? away = null;
     private Teams teams = new Teams();
+    private bool hideButtons = true;
     protected override async Task OnInitializedAsync()
     {
-        hubConnection = new HubConnectionBuilder()
-            .WithUrl("https://localhost:7095/hubs")
-            .Build();
-
-        hubConnection.On<string, string>("ScoreUpdate", (home, away) =>
+        try
         {
-            if (this.home == null || this.away == null) return;
-            int homeScore, awayScore;
-            int.TryParse(home, out homeScore);
-            int.TryParse(away, out awayScore);
-            this.home.Score = homeScore;
-            this.away.Score = awayScore;
-            var encodedMsg = $"Home {home}: Away {away}";
-            messages.Add(encodedMsg);
-            StateHasChanged();
-        });
 
-        hubConnection.On<string>("HomeUpdate", (homeName) =>
-        {
-            this.homeName = homeName;
-            if (!string.IsNullOrEmpty(homeName))
+            hubConnection = new HubConnectionBuilder()
+                    .WithUrl(Configuration["serverUrl"])
+                    .Build();
+
+            hubConnection.On<string, string>("ScoreUpdate", (home, away) =>
             {
-                home = teams[homeName];
-            }
-            StateHasChanged();
-        });
-        hubConnection.On<string>("AwayUpdate", (awayName) =>
-        {
-            this.awayName = awayName;
-            if (!string.IsNullOrEmpty(awayName))
-            {
-                away = teams[awayName];
-            }
-            StateHasChanged();
-        });
+                if (this.home == null || this.away == null) return;
+                int homeScore, awayScore;
+                int.TryParse(home, out homeScore);
+                int.TryParse(away, out awayScore);
+                this.home.Score = homeScore;
+                this.away.Score = awayScore;
+                var encodedMsg = $"Home {home}: Away {away}";
+                messages.Add(encodedMsg);
+                StateHasChanged();
+            });
 
-        await hubConnection.StartAsync();
+            hubConnection.On<string>("HomeUpdate", (homeName) =>
+            {
+                this.homeName = homeName;
+                if (!string.IsNullOrEmpty(homeName))
+                {
+                    home = teams[homeName];
+                }
+                StateHasChanged();
+            });
+            hubConnection.On<string>("AwayUpdate", (awayName) =>
+            {
+                this.awayName = awayName;
+                if (!string.IsNullOrEmpty(awayName))
+                {
+                    away = teams[awayName];
+                }
+                StateHasChanged();
+            });
+
+            await hubConnection.StartAsync();
+        } catch {}
     }
     public async Task AwayChanged(string awayName)
     {
@@ -179,6 +189,11 @@ label {
     public bool IsConnected =>
         hubConnection?.State == HubConnectionState.Connected;
 
+    public void ToggleButtons()
+    {
+        hideButtons = !hideButtons;
+        StateHasChanged();
+    }
     public async ValueTask DisposeAsync()
     {
         if (hubConnection is not null)

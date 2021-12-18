@@ -11,9 +11,10 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
     {
-        builder.WithOrigins("https://*.*","http://*.*")
+        builder //.WithOrigins("https://*.*","http://*.*")
             .AllowAnyOrigin()
             .AllowAnyHeader()
+            .SetIsOriginAllowed((host) => true)
             .AllowAnyMethod();
     });
 });
