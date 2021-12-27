@@ -1,4 +1,12 @@
-﻿namespace Scoreboard.Client.Models
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Scoreboard.Core
 {
     public class Teams : Dictionary<string, Team>
     {
@@ -37,12 +45,52 @@
             Add("San Francisco", new Team() { Name = "San Francisco", Abrev = "SF", ImageNum = "02" });
             Add("Seattle", new Team() { Name = "Seattle", Abrev = "SEA", ImageNum = "01" });
         }
+
     }
-    public class Team
+    public class Team : INotifyPropertyChanged
     {
-        public string? Name { get; set; }
-        public string? Abrev { get; set; }
-        public string? ImageNum { get; set; }
-        public int Score { get; set; }
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public void OnPropertyChanged([CallerMemberName] string name = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+
+        private string _name;
+
+        public string Name
+        {
+            get { return _name; }
+            set { _name = value; OnPropertyChanged(); }
+        }
+
+        private string _Abrev;
+
+        public string Abrev
+        {
+            get { return _Abrev; }
+            set { _Abrev = value; OnPropertyChanged(); }
+        }
+        private string _ImageNum;
+
+        public string ImageNum
+        {
+            get { return _ImageNum; }
+            set { _ImageNum = value; OnPropertyChanged(); }
+        }
+        private int _Score;
+
+        public int Score
+        {
+            get { return _Score; }
+            set { _Score = value; OnPropertyChanged(); }
+        }
+
+
+        public override string ToString()
+        {
+            return $"{Name}";
+        }
     }
 }
+

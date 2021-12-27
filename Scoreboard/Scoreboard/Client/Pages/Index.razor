@@ -1,7 +1,10 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.SignalR.Client
 @using Microsoft.Extensions.Configuration
+@using Scoreboard.Core
+@using System.ComponentModel
 @inject IConfiguration Configuration
+@inject MainViewModel model
 
 <PageTitle>Scoreboard Home</PageTitle>
 <style>
@@ -21,67 +24,67 @@ label {
 <MudGrid>
     
     <MudItem xs="6" >
-        @if (@away == null)
+        @if (@model.away == null)
         {
             <label>Away</label>
         } else
         {
-            <img src='/Helmets/@(away.ImageNum).png'>
+            <img src='/Helmets/@(model.away.ImageNum).png'>
         }        
-        @away?.Score
+        @model.away?.Score
         </MudItem>
     <MudItem xs="6" >
-        @if (@home == null)
+        @if (@model.home == null)
         {
             <label>Home</label>
         } else
         {
-            <img src='/Helmets/@(home.ImageNum).png'>
+            <img src='/Helmets/@(model.home.ImageNum).png'>
         }
-        @home?.Score
+        @model.home?.Score
         </MudItem>
 </MudGrid>
     </div>
 
 <MudGrid>
     <MudItem xs="6" >
-        <MudSelect T="string" Label="Away" AnchorOrigin="Origin.BottomCenter" Value="awayName" ValueChanged="AwayChanged"  AdornmentColor="Color.Secondary">
-            @foreach (var team in teams.Keys)
+        <MudSelect T="string" Label="Away" AnchorOrigin="Origin.BottomCenter" Value="model.awayName" ValueChanged="model.AwayChanged"  AdornmentColor="Color.Secondary">
+            @foreach (var team in model.teams.Keys)
             {
                 <MudSelectItem T="string" Value="@team">@team</MudSelectItem>
             }
         </MudSelect>
     </MudItem>
     <MudItem xs="6" >
-        <MudSelect T="string" Label="Home" AnchorOrigin="Origin.BottomCenter" Value="homeName" ValueChanged="HomeChanged">
-            @foreach (var team in teams.Keys)
+        <MudSelect T="string" Label="Home" AnchorOrigin="Origin.BottomCenter" Value="model.homeName" ValueChanged="model.HomeChanged">
+            @foreach (var team in model.teams.Keys)
             {
-                <MudSelectItem T="string" Value="@team">@team</MudSelectItem>
+                <MudSelectItem T="string" Value="team">@team</MudSelectItem>
             }
         </MudSelect>
     </MudItem>
 </MudGrid>
 
-<MudButton OnClick="@(() => ToggleButtons())" Variant="Variant.Filled" Color="Color.Secondary">...</MudButton>
-@if (!hideButtons)
+<MudButton OnClick="@(() => model.ToggleButtons())" Variant="Variant.Filled" Color="Color.Secondary">...</MudButton>
+@if (!model.hideButtons)
 {
     <MudGrid>    
         <MudItem xs="6" >
-            <MudButton OnClick="@(() => AwayScore(3))" Variant="Variant.Filled" Color="Color.Secondary">Field Goal</MudButton>
-            <MudButton OnClick="@(() => AwayScore(6))" Variant="Variant.Filled" Color="Color.Secondary">Touchdown</MudButton>
-            <MudButton OnClick="@(() => AwayScore(1))" Variant="Variant.Filled" Color="Color.Secondary">Extra Point</MudButton>
-            <MudButton OnClick="@(() => AwayScore(2))" Variant="Variant.Filled" Color="Color.Secondary">Safety/Two Point Conversion</MudButton>
+            <MudButton OnClick="@(() => model.AwayScore(3))" Variant="Variant.Filled" Color="Color.Secondary">Field Goal</MudButton>
+            <MudButton OnClick="@(() => model.AwayScore(6))" Variant="Variant.Filled" Color="Color.Secondary">Touchdown</MudButton>
+            <MudButton OnClick="@(() => model.AwayScore(1))" Variant="Variant.Filled" Color="Color.Secondary">Extra Point</MudButton>
+            <MudButton OnClick="@(() => model.AwayScore(2))" Variant="Variant.Filled" Color="Color.Secondary">Safety/Two Point Conversion</MudButton>
         </MudItem>
         <MudItem xs="6" >
-            <MudButton OnClick="@(() => HomeScore(3))" Variant="Variant.Filled" Color="Color.Primary">Field Goal</MudButton>
-            <MudButton OnClick="@(() => HomeScore(6))" Variant="Variant.Filled" Color="Color.Primary">Touchdown</MudButton>
-            <MudButton OnClick="@(() => HomeScore(1))" Variant="Variant.Filled" Color="Color.Primary">Extra Point</MudButton>
-            <MudButton OnClick="@(() => HomeScore(2))" Variant="Variant.Filled" Color="Color.Primary">Safety/Two Point Conversion</MudButton>
+            <MudButton OnClick="@(() => model.HomeScore(3))" Variant="Variant.Filled" Color="Color.Primary">Field Goal</MudButton>
+            <MudButton OnClick="@(() => model.HomeScore(6))" Variant="Variant.Filled" Color="Color.Primary">Touchdown</MudButton>
+            <MudButton OnClick="@(() => model.HomeScore(1))" Variant="Variant.Filled" Color="Color.Primary">Extra Point</MudButton>
+            <MudButton OnClick="@(() => model.HomeScore(2))" Variant="Variant.Filled" Color="Color.Primary">Safety/Two Point Conversion</MudButton>
         </MudItem>
     </MudGrid>
     <hr>
     <ul id="messagesList">
-        @foreach (var message in messages)
+        @foreach (var message in model.messages)
         {
             <li>@message</li>
         }
@@ -89,116 +92,21 @@ label {
 }
 
 @code {
-    private HubConnection? hubConnection;
-    private List<string> messages = new List<string>();
-    private string? awayName;
-    private string? homeName;
-    private Team? home = null;
-    private Team? away = null;
-    private Teams teams = new Teams();
-    private bool hideButtons = true;
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-
-            hubConnection = new HubConnectionBuilder()
-                    .WithUrl(Configuration["serverUrl"])
-                    .Build();
-
-            hubConnection.On<string, string>("ScoreUpdate", (home, away) =>
-            {
-                if (this.home == null || this.away == null) return;
-                int homeScore, awayScore;
-                int.TryParse(home, out homeScore);
-                int.TryParse(away, out awayScore);
-                this.home.Score = homeScore;
-                this.away.Score = awayScore;
-                var encodedMsg = $"Home {home}: Away {away}";
-                messages.Add(encodedMsg);
-                StateHasChanged();
-            });
-
-            hubConnection.On<string>("HomeUpdate", (homeName) =>
-            {
-                this.homeName = homeName;
-                if (!string.IsNullOrEmpty(homeName))
-                {
-                    home = teams[homeName];
-                }
-                StateHasChanged();
-            });
-            hubConnection.On<string>("AwayUpdate", (awayName) =>
-            {
-                this.awayName = awayName;
-                if (!string.IsNullOrEmpty(awayName))
-                {
-                    away = teams[awayName];
-                }
-                StateHasChanged();
-            });
-
-            await hubConnection.StartAsync();
-        } catch {}
-    }
-    public async Task AwayChanged(string awayName)
-    {
-        this.awayName = awayName;
-        if (!string.IsNullOrEmpty(awayName))
-        {
-            away = teams[awayName];
-            if (hubConnection is not null)
-            {
-                await hubConnection.SendAsync("AwayUpdate", awayName);
-            }
-            StateHasChanged();
-        }
-    }
-    public async Task HomeChanged(string homeName)
-    {
-        this.homeName = homeName;
-        if (!string.IsNullOrEmpty(homeName))
-        {
-            home = teams[homeName];            
-            if (hubConnection is not null)
-            {
-                await hubConnection.SendAsync("HomeUpdate", homeName);
-            }
-            StateHasChanged();
-        }
-    }
-    private async Task Send()
-    {
-        if (hubConnection is not null)
-        {
-            await hubConnection.SendAsync("ScoreUpdate", home?.Score.ToString(), away?.Score.ToString());
-        }
-    }
-    private async Task AwayScore(int points)
-    {
-        if (away == null) return;
-        away.Score += points;
-        await Send();
-    }
-    private async Task HomeScore(int points)
-    {
-        if (home == null) return;
-        home.Score += points;
-        await Send();
-    }
-    public bool IsConnected =>
-        hubConnection?.State == HubConnectionState.Connected;
-
-    public void ToggleButtons()
-    {
-        hideButtons = !hideButtons;
-        StateHasChanged();
+        string accessToken = Configuration["accessToken"];
+        string serverUrl = Configuration["serverUrl"];
+        await model.Initialize(accessToken, serverUrl);
+        model.PropertyChanged += model_PropertyChanged;
     }
     public async ValueTask DisposeAsync()
     {
-        if (hubConnection is not null)
-        {
-            await hubConnection.DisposeAsync();
-        }
+        model.PropertyChanged -= model_PropertyChanged;
+        await model.DisposeAsync();
+    }
+    public void model_PropertyChanged(object? sender, PropertyChangedEventArgs? e)
+    {
+        StateHasChanged();
+
     }
 }
