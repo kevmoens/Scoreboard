@@ -23,6 +23,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <Image x:Name="MRBackgroundImage" />
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>

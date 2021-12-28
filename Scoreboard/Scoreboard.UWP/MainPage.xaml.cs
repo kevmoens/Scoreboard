@@ -37,6 +37,15 @@ namespace Scoreboard.UWP
             //await ((MainViewModel)DataContext).Initialize("Endpoint=https://scoreboard.service.signalr.net;AccessKey=1wnnrH4YcO+CxyPqAEdkQ5wz0q2HetjIADpB8yYdRR8=;Version=1.0;", "https://scoreboard.service.signalr.net/hubs");
             HttpServer server = new HttpServer(1265);
             server.ViewModel = (MainViewModel)DataContext;
+
+            try
+            {
+                MRBackgroundImage.Source = new Windows.UI.Xaml.Media.Imaging.BitmapImage(new Uri("https://gopackgo.s3.us-east-2.amazonaws.com/MR.jpg", UriKind.Absolute));
+            }
+            catch (Exception ex )
+            { 
+                System.Diagnostics.Debug.Print(ex.Message); 
+            }
         }
 
     }

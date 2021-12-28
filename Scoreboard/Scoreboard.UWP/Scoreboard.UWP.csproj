@@ -167,6 +167,7 @@
     <Content Include="Helmets\62.png" />
     <Content Include="Helmets\64.png" />
     <Content Include="Helmets\ALL.jpg" />
+    <Content Include="Helmets\MR.jpg" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
