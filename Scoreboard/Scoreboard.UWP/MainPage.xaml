@@ -20,11 +20,14 @@
     </Page.DataContext>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="5*"/>
+            <RowDefinition Height="80*"/>
+            <RowDefinition Height="40*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Image x:Name="MRBackgroundImage" />
-        <Grid>
+        <Image x:Name="MRBackgroundImage" Grid.RowSpan="3"/>
+        <!-- Teams and Current Score-->
+        <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
@@ -35,33 +38,111 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Image x:Name="myXAMLImageElement" Source="{Binding away.ImageNum,Converter={StaticResource HelmetImageConverter}}" Margin="5"/>
-            <TextBlock Text="{x:Bind local:WebHelper.FindIPAddress()}" Foreground="White" FontSize="8"/>
-            <Viewbox Grid.Column="1" Stretch="Uniform" Margin="5">
-                <TextBlock Text="{Binding away.Score}"  Foreground="White"/>
+            <Image x:Name="AwayImage" Source="{Binding away.ImageNum,Converter={StaticResource HelmetImageConverter}}"  Margin="5"  Tag="{Binding away}">
+            </Image>
+            <TextBlock Text="{x:Bind local:WebHelper.FindIPAddress()}" Foreground="White" FontSize="8">
+            </TextBlock>
+            <Grid x:Name="Away" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" >
+                <Viewbox x:Name="AwayViewbox" Stretch="Uniform" Margin="5" >
+                    <Grid>
+                        <Border x:Name="ShadowTarget"/>
+                        <TextBlock x:Name="AwayTextblock" 
+                               Text="{Binding away.Score}"  Foreground="White" >
+                        </TextBlock>
+                    </Grid>
+                </Viewbox>
+                <Grid x:Name="AwayScore" HorizontalAlignment="Center" VerticalAlignment="Center"></Grid>
+            </Grid>
+            <Image x:Name="HomeImage"  Grid.Column="2"  Source="{Binding home.ImageNum,Converter={StaticResource HelmetImageConverter}}" Margin="5"  Tag="{Binding home}">
+                <Image.Resources>
+                    <Storyboard x:Key="Storyboard1">
+                        <DoubleAnimation Storyboard.TargetName="Translation1" Storyboard.TargetProperty="X" From="0" To="-200" >
+                            <DoubleAnimation.EasingFunction>
+                                <BackEase/>
+                            </DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                    </Storyboard>
+                </Image.Resources>
+                <Image.RenderTransform>
+                    <TranslateTransform x:Name="Translation1" />
+                </Image.RenderTransform>
+            </Image>
+            <Grid x:Name="Home" Grid.Column="3"  HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Viewbox x:Name="HomeViewbox" Stretch="Uniform" Margin="5">
+                    <TextBlock x:Name="HomeTextBlock" Text="{Binding home.Score}"  Foreground="White"/>
+                </Viewbox>
+                <Grid x:Name="HomeScore" HorizontalAlignment="Center" VerticalAlignment="Center"></Grid>
+            </Grid>
+            <Grid Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Viewbox x:Name="AwayViewboxScoreAnimation" Stretch="Uniform" Margin="5" Visibility="Collapsed">
+                    <Grid>
+                        <TextBlock  
+                               Text="{Binding away.Score}"  Foreground="White" >
+                        </TextBlock>
+                    </Grid>
+                </Viewbox>
+            </Grid>
+        </Grid>
+        <!-- Scoring Animation -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="2*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Rectangle Grid.Row="1" Grid.Column="1" x:Name="ScoreRectangle" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Collapsed"></Rectangle>
+            <Viewbox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock x:Name="ScoreText" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" Margin="10" FontWeight="Bold"/>
             </Viewbox>
-            <ComboBox x:Name="cboAway" ItemsSource="{x:Bind ViewModel.teams.Values}" SelectedValue="{x:Bind ViewModel.away}" Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Foreground="White">
+        </Grid>
+        <Grid Grid.Row="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" >
+                <Button Command="{x:Bind ViewModel.AwayScoreCommand}" CommandParameter="3">FG</Button>
+                <Button Command="{x:Bind ViewModel.AwayScoreCommand}" CommandParameter="6">TD</Button>
+                <Button Command="{x:Bind ViewModel.AwayScoreCommand}" CommandParameter="1">Extra</Button>
+                <Button Command="{x:Bind ViewModel.AwayScoreCommand}" CommandParameter="2">2Pt</Button>
+                <Button Command="{x:Bind ViewModel.AwayResetCommand}" >Reset</Button>
+            </StackPanel>
+
+            <ComboBox x:Name="cboAway" ItemsSource="{x:Bind ViewModel.teams.Values}" SelectedValue="{x:Bind ViewModel.away}" Grid.Row="1" HorizontalAlignment="Stretch" Foreground="White">
                 <i:Interaction.Behaviors>
                     <core:EventTriggerBehavior EventName="SelectionChanged">
                         <core:EventTriggerBehavior.Actions>
                             <core:InvokeCommandAction Command="{x:Bind ViewModel.AwayChangedCommand}" CommandParameter="{Binding ElementName=cboAway,Path=SelectedItem}"/>
                         </core:EventTriggerBehavior.Actions>
                     </core:EventTriggerBehavior>
-                </i:Interaction.Behaviors>                
+                </i:Interaction.Behaviors>
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel>
-                            
-                        <TextBlock Text="{Binding Name}" Foreground="White"/>
+
+                            <TextBlock Text="{Binding Name}" Foreground="White"/>
                         </StackPanel>
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            <Image x:Name="myXAMLImageElement2"  Grid.Column="2"  Source="{Binding home.ImageNum,Converter={StaticResource HelmetImageConverter}}" Margin="5"/>
-            <Viewbox Grid.Column="3" Stretch="Uniform" Margin="5">
-                <TextBlock Text="{Binding home.Score}"  Foreground="White"/>
-            </Viewbox>
-            <ComboBox x:Name="cboHome" ItemsSource="{x:Bind ViewModel.teams.Values}" SelectedValue="{x:Bind ViewModel.home}"  Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Foreground="White" >
+            <StackPanel Orientation="Horizontal" Grid.Column="1">
+                <Button Command="{x:Bind ViewModel.HomeScoreCommand}" CommandParameter="3">FG</Button>
+                <Button Command="{x:Bind ViewModel.HomeScoreCommand}" CommandParameter="6">TD</Button>
+                <Button Command="{x:Bind ViewModel.HomeScoreCommand}" CommandParameter="1">Extra</Button>
+                <Button Command="{x:Bind ViewModel.HomeScoreCommand}" CommandParameter="2">2Pt</Button>
+                <Button Command="{x:Bind ViewModel.HomeResetCommand}" >Reset</Button>
+            </StackPanel>
+
+            <ComboBox x:Name="cboHome" ItemsSource="{x:Bind ViewModel.teams.Values}" SelectedValue="{x:Bind ViewModel.home}"  Grid.Row="1" Grid.Column="2" HorizontalAlignment="Stretch" Foreground="White" >
                 <i:Interaction.Behaviors>
                     <core:EventTriggerBehavior EventName="SelectionChanged">
                         <core:EventTriggerBehavior.Actions>
@@ -77,26 +158,6 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-        </Grid>
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <StackPanel Orientation="Horizontal" >
-                <Button Command="{x:Bind ViewModel.AwayScoreCommand}" CommandParameter="3">FG</Button>
-                <Button Command="{x:Bind ViewModel.AwayScoreCommand}" CommandParameter="6">TD</Button>
-                <Button Command="{x:Bind ViewModel.AwayScoreCommand}" CommandParameter="1">Extra</Button>
-                <Button Command="{x:Bind ViewModel.AwayScoreCommand}" CommandParameter="2">2Pt</Button>
-                <Button Command="{x:Bind ViewModel.AwayResetCommand}" >Reset</Button>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Grid.Column="1">
-                <Button Command="{x:Bind ViewModel.HomeScoreCommand}" CommandParameter="3">FG</Button>
-                <Button Command="{x:Bind ViewModel.HomeScoreCommand}" CommandParameter="6">TD</Button>
-                <Button Command="{x:Bind ViewModel.HomeScoreCommand}" CommandParameter="1">Extra</Button>
-                <Button Command="{x:Bind ViewModel.HomeScoreCommand}" CommandParameter="2">2Pt</Button>
-                <Button Command="{x:Bind ViewModel.HomeResetCommand}" >Reset</Button>
-            </StackPanel>
         </Grid>
     </Grid>
 </Page>

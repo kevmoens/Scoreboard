@@ -166,12 +166,14 @@ namespace Scoreboard.Core
         {
             if (away == null) return;
             away.Score += points;
+            PubSub.Hub.Default.Publish<ScoreMessage>(new ScoreMessage() { IsHome = false, Points = points });
             await Send();
         }
         public async Task HomeScore(int points)
         {
             if (home == null) return;
             home.Score += points;
+            PubSub.Hub.Default.Publish<ScoreMessage>(new ScoreMessage() { IsHome = true, Points = points });
             await Send();
         }
         public bool IsConnected =>

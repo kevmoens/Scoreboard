@@ -1,0 +1,2 @@
+MainPackage=C:\code\_Sections\Scoreboard\Scoreboard\Scoreboard.UWP\bin\x64\Release\Scoreboard.UWP_1.0.1.0_x64.msix
+SymbolPackage=C:\code\_Sections\Scoreboard\Scoreboard\Scoreboard.UWP\obj\x64\Release\Symbols\Scoreboard.UWP_1.0.1.0_x64.appxsym
