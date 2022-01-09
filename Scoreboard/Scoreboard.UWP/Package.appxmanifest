@@ -9,7 +9,7 @@
   <Identity
     Name="c8fc6704-f7af-4233-9125-923ca49fdff6"
     Publisher="CN=scoreboard"
-    Version="1.0.1.0" />
+    Version="1.0.2.0" />
 
   <mp:PhoneIdentity PhoneProductId="c8fc6704-f7af-4233-9125-923ca49fdff6" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 

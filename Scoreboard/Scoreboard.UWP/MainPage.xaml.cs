@@ -97,6 +97,9 @@ namespace Scoreboard.UWP
                 ScoreRectangleGetColor(team, ref r, ref g, ref b);
                 ScoreRectangle.Fill = new SolidColorBrush(Color.FromArgb(255, r, g, b));
 
+                ScoreTextGetColor(team, ref r, ref g, ref b);
+                scoringTextblock.Foreground = new SolidColorBrush(Color.FromArgb(255, r, g, b));
+
                 ScoreRectangleGetText(msg);
                 ScoreRectangle.Visibility = Visibility.Visible;
                 ScoreText.Visibility = Visibility.Visible;
@@ -148,6 +151,20 @@ namespace Scoreboard.UWP
             if (!string.IsNullOrEmpty(team.BackgroundColor))
             {
                 var rgb = StringToByteArray(team.BackgroundColor);
+                r = rgb[0];
+                g = rgb[1];
+                b = rgb[2];
+            }
+        }
+        private static void ScoreTextGetColor(Team team, ref byte r, ref byte g, ref byte b)
+        {
+            r = 255;
+            g = 255;
+            b = 255;
+
+            if (!string.IsNullOrEmpty(team.ForegroundColor))
+            {
+                var rgb = StringToByteArray(team.ForegroundColor);
                 r = rgb[0];
                 g = rgb[1];
                 b = rgb[2];
