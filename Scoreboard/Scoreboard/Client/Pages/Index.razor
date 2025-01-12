@@ -8,63 +8,67 @@
 
 <PageTitle>Scoreboard Home</PageTitle>
 <style>
-body {
-    background-color: black;
-    /* background-image: url('https://gopackgo.s3.us-east-2.amazonaws.com/MR.jpg'); */
-    background-repeat: no-repeat;
-  background-attachment: fixed;
-  background-size: cover;
-    color: white;
-}
-label {
-    color: white;
-}
-.mud-input-label-inputcontrol {
-    color: white;
-    --mud-palette-text-secondary: white;
-}
+    body {
+        background-color: black;
+        /* background-image: url('https://gopackgo.s3.us-east-2.amazonaws.com/MR.jpg'); */
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-size: cover;
+        color: white;
+    }
+
+    label {
+        color: white;
+    }
+
+    .mud-input-label-inputcontrol {
+        color: white;
+        --mud-palette-text-secondary: white;
+    }
 
     .mud-input.mud-input-underline:before {
         border-bottom: none;
     }
 
 </style>
-    <div style="font-size: 18vw;">
-<MudGrid>
-    
-    <MudItem xs="6" >
-        @if (@model.away == null)
-        {
-            <label>Away</label>
-        } else
-        {
-            <img src='/Helmets/@(model.away.ImageNum).png'>
-        }        
-        @model.away?.Score
+<div style="font-size: 18vw;">
+    <MudGrid>
+
+        <MudItem xs="6">
+            @if (@model.away == null)
+            {
+                <label>Away</label>
+            }
+            else
+            {
+                <img src='/@(helmetPath)/@(model.away.ImageNum).png'>
+            }
+            @model.away?.Score
         </MudItem>
-    <MudItem xs="6" >
-        @if (@model.home == null)
-        {
-            <label>Home</label>
-        } else
-        {
-            <img src='/Helmets/@(model.home.ImageNum).png'>
-        }
-        @model.home?.Score
+        <MudItem xs="6">
+            @if (@model.home == null)
+            {
+                <label>Home</label>
+            }
+            else
+            {
+                <img src='/@(helmetPath)/@(model.home.ImageNum).png'>
+            }
+            @model.home?.Score
         </MudItem>
-</MudGrid>
-    </div>
+    </MudGrid>
+</div>
 
 <MudGrid>
-    <MudItem xs="6" >
-        <MudSelect T="string" Label="Away" AnchorOrigin="Origin.BottomCenter" Value="model.awayName" ValueChanged="model.AwayChanged"  AdornmentColor="Color.Secondary">
+    <MudItem xs="6">
+        <MudSelect T="string" Label="Away" AnchorOrigin="Origin.BottomCenter" Value="model.awayName" ValueChanged="model.AwayChanged" AdornmentColor="Color.Secondary">
             @foreach (var team in model.teams.Keys)
             {
                 <MudSelectItem T="string" Value="@team">@team</MudSelectItem>
             }
         </MudSelect>
     </MudItem>
-    <MudItem xs="6" >
+    <MudItem xs="6">
         <MudSelect T="string" Label="Home" AnchorOrigin="Origin.BottomCenter" Value="model.homeName" ValueChanged="model.HomeChanged">
             @foreach (var team in model.teams.Keys)
             {
@@ -77,14 +81,15 @@ label {
 <MudButton OnClick="@(() => model.ToggleButtons())" Variant="Variant.Filled" Color="Color.Dark">...</MudButton>
 @if (!model.hideButtons)
 {
-    <MudGrid>    
-        <MudItem xs="6" >
+    <MudGrid>
+        <MudItem xs="6">
             <MudButton OnClick="@(() => model.AwayScore(3))" Variant="Variant.Filled" Color="Color.Secondary">Field Goal</MudButton>
             <MudButton OnClick="@(() => model.AwayScore(6))" Variant="Variant.Filled" Color="Color.Secondary">Touchdown</MudButton>
             <MudButton OnClick="@(() => model.AwayScore(1))" Variant="Variant.Filled" Color="Color.Secondary">Extra Point</MudButton>
             <MudButton OnClick="@(() => model.AwayScore(2))" Variant="Variant.Filled" Color="Color.Secondary">Safety/Two Point Conversion</MudButton>
+            <MudButton OnClick="@(() => ToggleHelmetPath())" Variant="Variant.Filled" Icon="Icons.Material.Filled.SwapCalls" Color="Color.Secondary">Toggle Helmets</MudButton>
         </MudItem>
-        <MudItem xs="6" >
+        <MudItem xs="6">
             <MudButton OnClick="@(() => model.HomeScore(3))" Variant="Variant.Filled" Color="Color.Primary">Field Goal</MudButton>
             <MudButton OnClick="@(() => model.HomeScore(6))" Variant="Variant.Filled" Color="Color.Primary">Touchdown</MudButton>
             <MudButton OnClick="@(() => model.HomeScore(1))" Variant="Variant.Filled" Color="Color.Primary">Extra Point</MudButton>
@@ -101,6 +106,7 @@ label {
 }
 
 @code {
+    private string helmetPath = "Helmets";
     protected override async Task OnInitializedAsync()
     {
         string accessToken = Configuration["accessToken"];
@@ -117,5 +123,16 @@ label {
     {
         StateHasChanged();
 
+    }
+    public void ToggleHelmetPath()
+    {
+        if (helmetPath == "Helmets") 
+        { 
+            helmetPath = "HelmetsOld"; 
+        } 
+        else 
+        { 
+            helmetPath = "Helmets"; 
+        }
     }
 }
